@@ -135,6 +135,8 @@ class PricingController extends Controller
                                              "emergencyAddressSid" => $address_sid
                                          ]
                                 );
+            $active_emergency_phone_number = $this->twilio->incomingPhoneNumbers($incoming_phone_number->sid)
+                                ->update(["emergencyStatus" => "Active"]);
  
             $attribute = [
                 "user_id" => $user_id,
