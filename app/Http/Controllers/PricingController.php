@@ -78,7 +78,15 @@ class PricingController extends Controller
 
     public function postAddress(Request $request)
     {
+          
         $address_sid = "";
+        $validator = $request->validate([
+            'full_name' => 'required|min:3|max:40|regex:/^[a-zA-Z\pL\s\-]+$/u',
+            'street' => 'required|min:1|max:40',
+            'city' => 'required|min:3|max:40',
+            'region' => 'required|min:1|max:40',
+            'postal_code' => 'required|min:3|max:40'
+        ]);
         try {
             $full_name = $request->full_name ? $request->full_name : "name";
             $street = $request->street ? $request->street : "street";
@@ -87,11 +95,10 @@ class PricingController extends Controller
             $postal_code = $request->postal_code
                 ? $request->postal_code
                 : "postal_code";
-            $country_code = $request->country_code
-                ? $request->country_code
+            $country_code = decrypt($request->country_code)
+                ? decrypt($request->country_code)
                 : "country_code";
             $user_id = Auth::id();
-            $user_name = Auth::user()->name;
 
             $address = $this->twilio->addresses->create(
                 $full_name, // customerName
@@ -109,7 +116,7 @@ class PricingController extends Controller
             $url = url("/");
             $p_params = [
                 "friendlyName" => $address->friendlyName,
-                "phoneNumber" => $request->number,
+                "phoneNumber" => decrypt($request->number),
                 "voiceMethod" => "GET",
                 "voiceUrl" =>
                     $url . "/config/call-webhook-handler/" . Auth::id(),
@@ -126,7 +133,7 @@ class PricingController extends Controller
                 "user_id" => $user_id,
                 "address_sid" => $address_sid,
                 "customer_name" => $user_name,
-                "phone_number" => $request->number,
+                "phone_number" => decrypt($request->number),
                 "voice_url" => $p_params["voiceUrl"],
                 "sms_url" => $p_params["smsUrl"],
                 "street" => $street,
