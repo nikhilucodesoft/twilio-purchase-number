@@ -26,13 +26,13 @@ class PricingController extends Controller
     public function index()
     {
         /** Retrieve a list of countries where Twilio phone number services are available */
-        $phoneCountries = $this->twilio->pricing->phoneNumbers->countries->read();
 
-        return view("pricing", ["phoneCountries" => $phoneCountries]);
+        $phoneCountries = $this->twilio_countires_list();
+        return view("pricing", ["phoneCountries" => $twilioCountries]);
     }
 
     /** PHONE NUMBERS */
-    public function phoneNumbers(Request $request)
+    public function phone_numbers(Request $request)
     {
         $this->validate($request, [
             "iso2" => "required",
@@ -40,12 +40,12 @@ class PricingController extends Controller
 
         try {
             $country = $request->iso2;
-            /** Retrieve the cost of phone numbers in the given country. */
+
             $price = $this->twilio->pricing->v1->phoneNumbers
                 ->countries($country)
                 ->fetch();
 
-            $phoneCountries = $this->twilio->pricing->phoneNumbers->countries->read();
+            $phoneCountries = $this->twilio_countires_list();
 
             $available_number = $this->twilio
                 ->availablePhoneNumbers($country)
@@ -68,6 +68,12 @@ class PricingController extends Controller
         }
     }
 
+    public function twilio_countires_list()
+    {
+        $phoneCountries = $this->twilio->pricing->phoneNumbers->countries->read();
+        return $phoneCountries;
+    }
+
     public function purchase_number($number, $country_code)
     {
         return view("address_form", [
@@ -76,16 +82,15 @@ class PricingController extends Controller
         ]);
     }
 
-    public function postAddress(Request $request)
+    public function post_address(Request $request)
     {
-          
         $address_sid = "";
         $validator = $request->validate([
-            'full_name' => 'required|min:3|max:40|regex:/^[a-zA-Z\pL\s\-]+$/u',
-            'street' => 'required|min:1|max:40',
-            'city' => 'required|min:3|max:40',
-            'region' => 'required|min:1|max:40',
-            'postal_code' => 'required|min:3|max:40'
+            "full_name" => 'required|min:3|max:40|regex:/^[a-zA-Z\pL\s\-]+$/u',
+            "street" => "required|min:1|max:40",
+            "city" => "required|min:3|max:40",
+            "region" => "required|min:1|max:40",
+            "postal_code" => "required|min:3|max:40",
         ]);
         try {
             $full_name = $request->full_name ? $request->full_name : "name";
@@ -109,11 +114,11 @@ class PricingController extends Controller
                 $postal_code, // postalCode
                 $country_code, // isoCountry
                 [
-                    "friendlyName" =>  $full_name,
-                    "emergencyEnabled" => True
+                    "friendlyName" => $full_name,
+                    "emergencyEnabled" => true,
                 ]
             );
-            dd($address_sid);
+
             $address_sid = $address->sid;
             $url = url("/");
             $p_params = [
@@ -130,14 +135,15 @@ class PricingController extends Controller
             $incoming_phone_number = $this->twilio->incomingPhoneNumbers->create(
                 $p_params
             );
-            $associate_phone_number =  $this->twilio->incomingPhoneNumbers($incoming_phone_number->sid)
-                                ->update([
-                                             "emergencyAddressSid" => $address_sid
-                                         ]
-                                );
-            $active_emergency_phone_number = $this->twilio->incomingPhoneNumbers($incoming_phone_number->sid)
-                                ->update(["emergencyStatus" => "Active"]);
- 
+            $associate_phone_number = $this->twilio
+                ->incomingPhoneNumbers($incoming_phone_number->sid)
+                ->update([
+                    "emergencyAddressSid" => $address_sid,
+                ]);
+            $active_emergency_phone_number = $this->twilio
+                ->incomingPhoneNumbers($incoming_phone_number->sid)
+                ->update(["emergencyStatus" => "Active"]);
+
             $attribute = [
                 "user_id" => $user_id,
                 "address_sid" => $address_sid,
