@@ -28,7 +28,7 @@ class PricingController extends Controller
         /** Retrieve a list of countries where Twilio phone number services are available */
 
         $phoneCountries = $this->twilio_countires_list();
-        return view("pricing", ["phoneCountries" => $twilioCountries]);
+        return view("pricing", ["phoneCountries" => $phoneCountries]);
     }
 
     /** PHONE NUMBERS */
@@ -84,7 +84,7 @@ class PricingController extends Controller
 
     public function post_address(Request $request)
     {
-        $address_sid = "";
+        
         $validator = $request->validate([
             "full_name" => 'required|min:3|max:40|regex:/^[a-zA-Z\pL\s\-]+$/u',
             "street" => "required|min:1|max:40",
@@ -93,7 +93,7 @@ class PricingController extends Controller
             "postal_code" => "required|min:3|max:40",
         ]);
         try {
-            $full_name = $request->full_name ? $request->full_name : "name";
+            $fullName = $request->full_name ? $request->full_name : "name";
             $street = $request->street ? $request->street : "street";
             $city = $request->city ? $request->city : "city";
             $region = $request->region ? $request->region : "region";
@@ -107,19 +107,19 @@ class PricingController extends Controller
             $user_name = Auth::user()->name;
 
             $address = $this->twilio->addresses->create(
-                $full_name, // customerName
+                $fullName, // customerName
                 $street, // street
                 $city, // city
                 $region, // region
                 $postal_code, // postalCode
                 $country_code, // isoCountry
                 [
-                    "friendlyName" => $full_name,
+                    "friendlyName" => $fullName,
                     "emergencyEnabled" => true,
                 ]
             );
 
-            $address_sid = $address->sid;
+            $addressSid = $address->sid;
             $url = url("/");
             $p_params = [
                 "friendlyName" => $address->friendlyName,
@@ -129,8 +129,8 @@ class PricingController extends Controller
                     $url . "/config/call-webhook-handler/" . Auth::id(),
                 "smsMethod" => "GET",
                 "smsUrl" => $url . "/call-system/SmsNotify/" . Auth::id(),
-                "addressSid" => $address_sid,
-                "emergencyAddressSid" => $address_sid,
+                "addressSid" => $addressSid,
+                "emergencyAddressSid" => $addressSid,
             ];
             $incoming_phone_number = $this->twilio->incomingPhoneNumbers->create(
                 $p_params
@@ -138,7 +138,7 @@ class PricingController extends Controller
             $associate_phone_number = $this->twilio
                 ->incomingPhoneNumbers($incoming_phone_number->sid)
                 ->update([
-                    "emergencyAddressSid" => $address_sid,
+                    "emergencyAddressSid" => $addressSid,
                 ]);
             $active_emergency_phone_number = $this->twilio
                 ->incomingPhoneNumbers($incoming_phone_number->sid)
@@ -146,7 +146,7 @@ class PricingController extends Controller
 
             $attribute = [
                 "user_id" => $user_id,
-                "address_sid" => $address_sid,
+                "address_sid" => $addressSid,
                 "customer_name" => $user_name,
                 "phone_number" => decrypt($request->number),
                 "voice_url" => $p_params["voiceUrl"],
