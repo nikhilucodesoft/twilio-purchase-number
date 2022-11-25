@@ -99,6 +99,7 @@ class PricingController extends Controller
                 ? decrypt($request->country_code)
                 : "country_code";
             $user_id = Auth::id();
+            $user_name = Auth::user()->name;
 
             $address = $this->twilio->addresses->create(
                 $full_name, // customerName
@@ -112,6 +113,7 @@ class PricingController extends Controller
                     "emergencyEnabled" => True
                 ]
             );
+            dd($address_sid);
             $address_sid = $address->sid;
             $url = url("/");
             $p_params = [
@@ -128,7 +130,12 @@ class PricingController extends Controller
             $incoming_phone_number = $this->twilio->incomingPhoneNumbers->create(
                 $p_params
             );
-
+            $associate_phone_number =  $this->twilio->incomingPhoneNumbers($incoming_phone_number->sid)
+                                ->update([
+                                             "emergencyAddressSid" => $address_sid
+                                         ]
+                                );
+ 
             $attribute = [
                 "user_id" => $user_id,
                 "address_sid" => $address_sid,
