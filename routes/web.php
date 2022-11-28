@@ -26,3 +26,4 @@ Route::get('/home', 'PricingController@index')->name('home');
 });
  
  
+ 

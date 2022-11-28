@@ -104,7 +104,7 @@ class PricingController extends Controller
                 ? decrypt($request->country_code)
                 : "country_code";
             $user_id = Auth::id();
-            $user_name = Auth::user()->name;
+            $userName = Auth::user()->name;
 
             $address = $this->twilio->addresses->create(
                 $fullName, // customerName
@@ -147,7 +147,7 @@ class PricingController extends Controller
             $attribute = [
                 "user_id" => $user_id,
                 "address_sid" => $addressSid,
-                "customer_name" => $user_name,
+                "customer_name" => $userName,
                 "phone_number" => decrypt($request->number),
                 "voice_url" => $p_params["voiceUrl"],
                 "sms_url" => $p_params["smsUrl"],
