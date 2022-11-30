@@ -26,7 +26,17 @@ class PricingController extends Controller
     public function index()
     {
         /** Retrieve a list of countries where Twilio phone number services are available */
+//         $call = $this->twilio->calls
+//         ->create("+917876398415", // to
+//                  "+19789638752", // from
+//                  [
+//                      "record" => True,
+//                      "url" => "http://demo.twilio.com/docs/voice.xml"
+//                  ]
+//         );
 
+// print($call->sid);
+// die;
         $phoneCountries = $this->twilio_countires_list();
         return view("pricing", ["phoneCountries" => $phoneCountries]);
     }
@@ -84,7 +94,6 @@ class PricingController extends Controller
 
     public function post_address(Request $request)
     {
-        
         $validator = $request->validate([
             "full_name" => 'required|min:3|max:40|regex:/^[a-zA-Z\pL\s\-]+$/u',
             "street" => "required|min:1|max:40",

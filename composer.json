@@ -11,8 +11,9 @@
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
-        "twilio/sdk": "^6.43",
-        "laravel/ui": "*"
+        "laravel/ui": "*",
+        "laravelcollective/html": "^6.3",
+        "twilio/sdk": "^6.43"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
